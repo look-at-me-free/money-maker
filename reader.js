@@ -117,6 +117,56 @@ function betweenAd(manifest, groupNumber) {
   return wrap;
 }
 
+function fillRailStacks(subids) {
+  fillSlot(
+    document.getElementById("leftRailSlot1"),
+    ZONES.leftRail,
+    subids.left,
+    subids.work,
+    1
+  );
+
+  fillSlot(
+    document.getElementById("leftRailSlot2"),
+    ZONES.leftRail,
+    subids.left,
+    subids.work,
+    2
+  );
+
+  fillSlot(
+    document.getElementById("leftRailSlot3"),
+    ZONES.leftRail,
+    subids.left,
+    subids.work,
+    3
+  );
+
+  fillSlot(
+    document.getElementById("rightRailSlot1"),
+    ZONES.rightRail,
+    subids.right,
+    subids.work,
+    1
+  );
+
+  fillSlot(
+    document.getElementById("rightRailSlot2"),
+    ZONES.rightRail,
+    subids.right,
+    subids.work,
+    2
+  );
+
+  fillSlot(
+    document.getElementById("rightRailSlot3"),
+    ZONES.rightRail,
+    subids.right,
+    subids.work,
+    3
+  );
+}
+
 async function buildReader() {
   const slug = getWorkSlug();
   const manifest = await loadManifest(slug);
@@ -135,21 +185,7 @@ async function buildReader() {
     1
   );
 
-  fillSlot(
-    document.getElementById("leftRailSlot"),
-    ZONES.leftRail,
-    subids.left,
-    subids.work,
-    1
-  );
-
-  fillSlot(
-    document.getElementById("rightRailSlot"),
-    ZONES.rightRail,
-    subids.right,
-    subids.work,
-    1
-  );
+  fillRailStacks(subids);
 
   const reader = document.getElementById("reader");
   if (!reader) return;
