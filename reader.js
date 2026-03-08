@@ -32,7 +32,8 @@ function getWorkSlug() {
 }
 
 async function loadManifest(slug) {
-  const res = await fetch(`works/${slug}/manifest.json`, { cache: "no-store" });
+  const manifestUrl = `https://pub-cd01009a7c6c464aa0b093e33aa5ae51.r2.dev/works/${slug}/manifest.json`;
+  const res = await fetch(manifestUrl, { cache: "no-store" });
   if (!res.ok) {
     throw new Error(`Failed to load manifest for ${slug}`);
   }
@@ -170,7 +171,6 @@ async function buildReader() {
     throw new Error(`Manifest for ${slug} has no images`);
   }
 
-  // First 2 images clean
   for (let i = 0; i < Math.min(2, images.length); i++) {
     reader.appendChild(
       imageBlock(
