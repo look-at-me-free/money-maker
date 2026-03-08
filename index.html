@@ -1,154 +1,226 @@
-const ZONES = {
-  topBanner: 5865232,
-  leftRail: 5865238,
-  rightRail: 5865240,
-  betweenMulti: 5867482
-};
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Wallace Archive Reader</title>
 
-function serveAds() {
-  (window.AdProvider = window.AdProvider || []).push({ serve: {} });
-}
+  <script async src="https://a.magsrv.com/ad-provider.js"></script>
+  <script>
+    window.AdProvider = window.AdProvider || [];
+  </script>
 
-function makeIns(zoneId, sub, sub2, sub3) {
-  const ins = document.createElement("ins");
-  ins.className = "eas6a97888e38";
-  ins.setAttribute("data-zoneid", String(zoneId));
-  ins.setAttribute("data-sub", String(sub));
-  ins.setAttribute("data-sub2", String(sub2));
-  ins.setAttribute("data-sub3", String(sub3));
-  return ins;
-}
-
-function fillSlot(el, zoneId, sub, sub2, sub3) {
-  el.innerHTML = "";
-  el.appendChild(makeIns(zoneId, sub, sub2, sub3));
-  serveAds();
-}
-
-function getWorkSlug() {
-  const url = new URL(window.location.href);
-  return url.searchParams.get("work") || "naruto_a1_v1";
-}
-
-async function loadManifest(slug) {
-  const res = await fetch(`works/${slug}/manifest.json`, { cache: "no-store" });
-  if (!res.ok) throw new Error(`Failed to load manifest for ${slug}`);
-  return res.json();
-}
-
-function imageBlock(src, alt) {
-  const wrap = document.createElement("div");
-  wrap.className = "image-wrap";
-
-  const img = document.createElement("img");
-  img.src = src;
-  img.alt = alt;
-  img.loading = "lazy";
-  img.decoding = "async";
-
-  wrap.appendChild(img);
-  return wrap;
-}
-
-function betweenAd(manifest, groupNumber) {
-  const wrap = document.createElement("div");
-  wrap.className = "slot";
-
-  const grid = document.createElement("div");
-  grid.className = "between-grid";
-
-  for (let i = 1; i <= 3; i++) {
-    const slot = document.createElement("div");
-    slot.className = "slot";
-
-    // sub = placement family
-    // sub2 = work id
-    // sub3 = group+slot
-    slot.appendChild(
-      makeIns(
-        ZONES.betweenMulti,
-        manifest.subids.between,
-        manifest.subids.work,
-        Number(`${groupNumber}${i}`)
-      )
-    );
-
-    grid.appendChild(slot);
-  }
-
-  wrap.appendChild(grid);
-  return wrap;
-}
-
-async function buildReader() {
-  const slug = getWorkSlug();
-  const manifest = await loadManifest(slug);
-
-  document.getElementById("workTitle").textContent = manifest.title;
-
-  fillSlot(
-    document.getElementById("topBannerSlot"),
-    ZONES.topBanner,
-    manifest.subids.top,
-    manifest.subids.work,
-    1
-  );
-
-  fillSlot(
-    document.getElementById("leftRailSlot"),
-    ZONES.leftRail,
-    manifest.subids.left,
-    manifest.subids.work,
-    1
-  );
-
-  fillSlot(
-    document.getElementById("rightRailSlot"),
-    ZONES.rightRail,
-    manifest.subids.right,
-    manifest.subids.work,
-    1
-  );
-
-  const reader = document.getElementById("reader");
-  reader.innerHTML = "";
-
-  const note = document.createElement("div");
-  note.className = "note";
-  note.textContent = "If anything below ever fails in the wider archive, keep scrolling. I planned for that. The working path is always here.";
-  reader.appendChild(note);
-
-  const images = manifest.images || [];
-  const base = manifest.base_url.replace(/\/+$/, "");
-
-  // first 2 images clean
-  for (let i = 0; i < Math.min(2, images.length); i++) {
-    reader.appendChild(
-      imageBlock(`${base}/${images[i]}`, `${manifest.title} page ${i + 1}`)
-    );
-  }
-
-  let groupNumber = 0;
-
-  for (let i = 2; i < images.length; i += 2) {
-    const slice = images.slice(i, i + 2);
-
-    for (let j = 0; j < slice.length; j++) {
-      reader.appendChild(
-        imageBlock(`${base}/${slice[j]}`, `${manifest.title} page ${i + j + 1}`)
-      );
+  <style>
+    :root{
+      --bg:#0b0b0f;
+      --ink:rgba(255,255,255,.95);
+      --muted:rgba(255,255,255,.68);
+      --stroke:rgba(255,255,255,.12);
+      --panel:rgba(255,255,255,.04);
+      --panel2:rgba(255,255,255,.06);
+      --shadow:0 20px 60px rgba(0,0,0,.5);
+      --radius:18px;
+      --railW:min(300px, 22vw);
+      --readerW:min(900px, 100%);
     }
 
-    groupNumber += 1;
-    reader.appendChild(betweenAd(manifest, groupNumber));
-  }
+    *{ box-sizing:border-box; }
 
-  serveAds();
-}
+    html, body{
+      margin:0;
+      min-height:100%;
+      background:var(--bg);
+      color:var(--ink);
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    }
 
-document.addEventListener("DOMContentLoaded", () => {
-  buildReader().catch(err => {
-    console.error(err);
-    document.getElementById("workTitle").textContent = "Failed to load work";
-  });
-});
+    body{
+      background:
+        radial-gradient(900px 500px at 15% 0%, rgba(255,255,255,.05), transparent 60%),
+        radial-gradient(800px 550px at 85% 15%, rgba(255,255,255,.04), transparent 55%),
+        var(--bg);
+    }
+
+    .hero{
+      text-align:center;
+      padding:26px 16px 10px;
+      border-bottom:1px solid var(--stroke);
+      background:linear-gradient(to bottom, rgba(255,255,255,.05), transparent 75%);
+    }
+
+    .hero h1{
+      margin:0;
+      font-size:clamp(2rem, 5vw, 3.6rem);
+      line-height:1.05;
+      letter-spacing:.4px;
+    }
+
+    .hero p{
+      margin:10px auto 0;
+      max-width:900px;
+      color:var(--muted);
+      font-size:clamp(1rem, 2.1vw, 1.2rem);
+    }
+
+    .top-banner{
+      max-width:1100px;
+      min-height:90px;
+      margin:16px auto;
+    }
+
+    .layout{
+      max-width:1700px;
+      margin:0 auto;
+      padding:16px;
+      display:grid;
+      grid-template-columns:var(--railW) minmax(0, 1fr) var(--railW);
+      gap:18px;
+      align-items:start;
+    }
+
+    .rail{
+      position:sticky;
+      top:16px;
+      height:max-content;
+    }
+
+    .reader{
+      width:var(--readerW);
+      margin:0 auto;
+      min-width:0;
+    }
+
+    .slot,
+    .image-wrap,
+    .note{
+      background:#111;
+      border:1px solid var(--stroke);
+      border-radius:var(--radius);
+      overflow:hidden;
+      box-shadow:var(--shadow);
+      margin-bottom:16px;
+    }
+
+    .slot{
+      min-height:250px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(180deg, var(--panel2), var(--panel));
+    }
+
+    .image-wrap{
+      background:#000;
+    }
+
+    .image-wrap img{
+      display:block;
+      width:100%;
+      height:auto;
+      background:#000;
+    }
+
+    .note{
+      padding:14px 16px;
+      line-height:1.5;
+      color:var(--muted);
+      background:linear-gradient(180deg, var(--panel2), var(--panel));
+    }
+
+    .between-grid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:14px;
+      padding:14px;
+      width:100%;
+    }
+
+    .between-grid .slot{
+      margin-bottom:0;
+      min-height:250px;
+    }
+
+    .exo-slot ins,
+    .slot ins{
+      display:block !important;
+      margin:0 auto !important;
+    }
+
+    @media (max-width: 1200px){
+      .layout{
+        grid-template-columns:1fr;
+      }
+
+      .rail{
+        position:relative;
+        top:auto;
+      }
+    }
+
+    @media (max-width: 820px){
+      .between-grid{
+        grid-template-columns:1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="hero">
+    <h1 id="workTitle">Loading…</h1>
+    <p>At most they simply have to scroll. And that’s easy.</p>
+  </header>
+
+  <div class="slot top-banner exo-slot" id="topBannerSlot"></div>
+
+  <div class="layout">
+    <aside class="rail">
+      <div class="slot exo-slot" id="leftRailSlot"></div>
+    </aside>
+
+    <main class="reader" id="reader"></main>
+
+    <aside class="rail">
+      <div class="slot exo-slot" id="rightRailSlot"></div>
+    </aside>
+  </div>
+
+  <script type="application/javascript">
+  (function() {
+    var adConfig = {
+      ads_host: "a.pemsrv.com",
+      syndication_host: "s.pemsrv.com",
+      idzone: 5865422,
+      popup_fallback: false,
+      popup_force: false,
+      chrome_enabled: true,
+      new_tab: false,
+      frequency_period: 720,
+      frequency_count: 1,
+      trigger_method: 3,
+      trigger_class: "",
+      trigger_delay: 0,
+      capping_enabled: true,
+      tcf_enabled: true,
+      only_inline: false
+    };
+
+    var s = document.createElement("script");
+    s.type = "application/javascript";
+    s.async = true;
+    s.src = "//" + adConfig.ads_host + "/popunder1000.js";
+    s.id = "popmagicldr";
+
+    for (var k in adConfig) {
+      if (!Object.prototype.hasOwnProperty.call(adConfig, k)) continue;
+      if (k === "ads_host" || k === "syndication_host") continue;
+      s.setAttribute("data-exo-" + k, adConfig[k]);
+    }
+
+    document.body.appendChild(s);
+  })();
+  </script>
+
+  <script src="reader.js"></script>
+</body>
+</html>
